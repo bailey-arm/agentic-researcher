@@ -31,7 +31,7 @@ launch_factor_app({"sz.002594": 1.0})
 | MARKET   | +9.5%      | 12.8%    | +0.74  | 14.1%           |
 | SECTOR   | +140.6%    | 103.8%   | +1.35  | 46.9%           |
 | STYLE    | -14.5%     | 8.4%     | -1.73  | 1.0%            |
-| IDIO     | -106.4%    | 103.4%   | -1.03  | 38.1%           |
+| IDIO     | 0.0%       | 103.4%   | 0.00   | 38.1%           |
 
 **Key findings:**
 - **SECTOR dominates** (46.9% of variance) — BYD's returns are largely driven by the auto manufacturing sector factor
