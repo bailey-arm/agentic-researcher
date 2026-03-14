@@ -187,11 +187,22 @@ def history_to_messages(history: list[dict]) -> list[dict]:
     for msg in history:
         role = msg.get("role", "")
         content = msg.get("content", "")
-        if role in ("user", "assistant") and content:
-            # Strip any image markdown from assistant messages before sending back
-            clean = re.sub(r"\n*!\[.*?\]\(.*?\)", "", content).strip()
-            if clean:
-                messages.append({"role": role, "content": clean})
+        if role not in ("user", "assistant") or not content:
+            continue
+        # Gradio 6 can return content as a list (multimodal);
+        # extract text parts only
+        if isinstance(content, list):
+            text_parts = [
+                p.get("text", "") if isinstance(p, dict) else str(p)
+                for p in content
+            ]
+            content = "\n".join(t for t in text_parts if t)
+        if not isinstance(content, str) or not content:
+            continue
+        # Strip image markdown from assistant messages
+        clean = re.sub(r"\n*!\[.*?\]\(.*?\)", "", content).strip()
+        if clean:
+            messages.append({"role": role, "content": clean})
     return messages
 
 

@@ -300,7 +300,7 @@ def _plot_decomposition(decomp, universe, portfolio):
         fontsize=12, y=1.01,
     )
     plt.tight_layout()
-    plt.show()
+    plt.close("all")
 
 
 def launch_factor_app(
