@@ -317,10 +317,12 @@ dark_theme = gr.themes.Soft(
 )
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 1200px !important; margin: auto !important; }
-.chatbot { max-width: 100% !important; }
+.gradio-container { max-width: 100% !important; padding: 0 2rem !important; }
+.gradio-container > div { max-width: 100% !important; }
+.chatbot { min-height: 70vh !important; }
 .message-wrap { font-size: 15px !important; }
 .bot .message-bubble-border { border: none !important; }
+footer { display: none !important; }
 """
 
 
@@ -329,7 +331,7 @@ def respond(message, history, send_email, email_to):
         yield partial
 
 
-with gr.Blocks(theme=dark_theme, css=CUSTOM_CSS, title="Agentic Researcher") as demo:
+with gr.Blocks(theme=dark_theme, css=CUSTOM_CSS, title="Agentic Researcher", fill_width=True) as demo:
     gr.Markdown("# Agentic Researcher")
 
     with gr.Accordion("Email settings", open=False):
@@ -344,6 +346,7 @@ with gr.Blocks(theme=dark_theme, css=CUSTOM_CSS, title="Agentic Researcher") as 
     gr.ChatInterface(
         fn=respond,
         additional_inputs=[send_email, email_to],
+        fill_width=True,
     )
 
 if __name__ == "__main__":
