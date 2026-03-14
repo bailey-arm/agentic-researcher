@@ -325,8 +325,12 @@ def launch_factor_app(
     -------
     str — URL of the running app.
     """
+    # Use chinalpha's own venv Python (has dash + backtester)
+    chinalpha_python = CHINALPHA_PATH / ".venv" / "bin" / "python"
+    if not chinalpha_python.exists():
+        chinalpha_python = "python"  # fallback
     cmd = [
-        sys.executable,
+        str(chinalpha_python),
         "apps/factor_dash.py",
         "--port", str(port),
     ]
