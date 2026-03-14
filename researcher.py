@@ -317,7 +317,8 @@ dark_theme = gr.themes.Soft(
 )
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 900px !important; margin: auto !important; }
+.gradio-container { max-width: 1200px !important; margin: auto !important; }
+.chatbot { max-width: 100% !important; }
 .message-wrap { font-size: 15px !important; }
 .bot .message-bubble-border { border: none !important; }
 """
