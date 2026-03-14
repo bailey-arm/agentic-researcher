@@ -86,6 +86,7 @@ def factor_decomposition(
     portfolio: dict[str, float],
     window: int = 252,
     plot: bool = True,
+    launch_app: bool = True,
 ) -> dict:
     """Full factor decomposition on a portfolio.
 
@@ -206,6 +207,10 @@ def factor_decomposition(
 
     if plot:
         _plot_decomposition(decomp, universe, portfolio)
+
+    if launch_app:
+        print("\nLaunching interactive app...")
+        launch_factor_app(portfolio)
 
     return {
         "category_summary": cat_summ,
