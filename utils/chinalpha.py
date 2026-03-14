@@ -7,6 +7,7 @@ Provides high-level functions the agent can call directly via run_python
 to answer questions about Chinese equity portfolios:
 
   - factor_decomposition(portfolio) — full factor decomposition with charts
+  - launch_factor_app(portfolio)    — launch interactive Dash app (opens in browser)
   - load_stock_returns(codes)       — get daily returns for specific stocks
   - list_stocks(query)              — search for stock codes by name
   - get_version()                   — chinalpha project version
@@ -15,11 +16,17 @@ Example usage in run_python:
     from utils.chinalpha import factor_decomposition
     factor_decomposition({"sz.002594": 1.0})  # long 100% BYD
 
+    # Or launch the interactive app:
+    from utils.chinalpha import launch_factor_app
+    launch_factor_app({"sz.002594": 1.0})  # opens Dash at localhost:8050
+
 The chinalpha repo must be available at CHINALPHA_PATH (default: /Users/admin/chinalpha).
 """
 
+import subprocess
 import sys
 import os
+import time
 import tomllib
 from pathlib import Path
 
@@ -261,6 +268,63 @@ def _plot_decomposition(decomp, universe, portfolio):
     plt.tight_layout()
     plt.savefig(__chart_path__, dpi=150, bbox_inches="tight") if "__chart_path__" in dir() else None
     plt.show()
+
+
+def launch_factor_app(
+    portfolio: dict[str, float] | None = None,
+    port: int = 8050,
+) -> str:
+    """Launch the interactive factor decomposition Dash app.
+
+    Opens a Dash web app at http://localhost:{port} where the user can
+    interactively explore factor decomposition, upload CSVs, add custom
+    factors, and view Plotly charts.
+
+    Parameters
+    ----------
+    portfolio : dict, optional
+        Stock code → weight mapping to pre-populate the app with.
+        Example: {"sz.002594": 1.0, "sh.600519": -0.5}
+    port : int
+        Port to serve on (default 8050).
+
+    Returns
+    -------
+    str — URL of the running app.
+    """
+    cmd = [sys.executable, "apps/factor_dash.py", "--port", str(port)]
+
+    if portfolio:
+        pairs = ",".join(f"{code}:{w}" for code, w in portfolio.items())
+        cmd += ["--portfolio", pairs]
+
+    proc = subprocess.Popen(
+        cmd,
+        cwd=str(CHINALPHA_PATH),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    # Wait for the server to start
+    url = f"http://localhost:{port}"
+    import urllib.request
+    for _ in range(30):
+        time.sleep(1)
+        try:
+            urllib.request.urlopen(url, timeout=2)
+            print(f"Factor decomposition app running at: {url}")
+            print(f"Portfolio pre-loaded: {portfolio or 'empty (use the UI)'}")
+            print(f"\nOpen {url} in your browser to interact.")
+            return url
+        except Exception:
+            if proc.poll() is not None:
+                stderr = proc.stderr.read().decode() if proc.stderr else ""
+                print(f"App failed to start: {stderr[:500]}")
+                return ""
+            continue
+
+    print(f"App started but may still be loading data. Try {url} in a few seconds.")
+    return url
 
 
 def list_stocks(query: str, n: int = 10) -> list[dict]:
