@@ -6,18 +6,20 @@ Help me analyse factor PnL attribution and risks on my portfolio of 100% long BY
 ## Output
 I'll run a factor decomposition on your BYD portfolio using our Chinese equity factor model and launch the interactive app so you can explore further.
 
-**Code used:**
+**Step 1 — run inline analysis:**
 ```python
-from utils.chinalpha import factor_decomposition, launch_factor_app
+from utils.chinalpha import factor_decomposition
 
 # BYD is sz.002594 (Shenzhen-listed)
 portfolio = {"sz.002594": 1.0}
-
-# Run inline analysis first
 result = factor_decomposition(portfolio)
+```
 
-# Launch interactive Dash app for deeper exploration
-launch_factor_app(portfolio)
+**Step 2 — launch interactive app:**
+```python
+from utils.chinalpha import launch_factor_app
+
+launch_factor_app({"sz.002594": 1.0})
 ```
 
 ### Results
@@ -29,8 +31,7 @@ launch_factor_app(portfolio)
 | MARKET   | +9.5%      | 12.8%    | +0.74  | 14.1%           |
 | SECTOR   | +140.6%    | 103.8%   | +1.35  | 46.9%           |
 | STYLE    | -14.5%     | 8.4%     | -1.73  | 1.0%            |
-| ALPHA    | -106.4%    | 0.0%     | —      | 0.0%            |
-| IDIO     | 0.0%       | 103.4%   | 0.00   | 38.1%           |
+| IDIO     | -106.4%    | 103.4%   | -1.03  | 38.1%           |
 
 **Key findings:**
 - **SECTOR dominates** (46.9% of variance) — BYD's returns are largely driven by the auto manufacturing sector factor
@@ -50,9 +51,9 @@ Can you help me do factor decomposition on my portfolio? I'm long Moutai and sho
 ## Output
 I'll decompose your long Moutai / short CCB portfolio.
 
-**Code used:**
+**Step 1 — find codes and run decomposition:**
 ```python
-from utils.chinalpha import factor_decomposition, launch_factor_app, list_stocks
+from utils.chinalpha import factor_decomposition, list_stocks
 
 # Find the exact codes
 list_stocks("茅台")   # sh.600519
@@ -64,7 +65,16 @@ portfolio = {
 }
 
 result = factor_decomposition(portfolio)
-launch_factor_app(portfolio)
+```
+
+**Step 2 — launch interactive app:**
+```python
+from utils.chinalpha import launch_factor_app
+
+launch_factor_app({
+    "sh.600519": 1.0,
+    "sh.601939": -1.0,
+})
 ```
 
 I've run the decomposition and launched the interactive app at http://localhost:8050. The portfolio is market-neutral by construction (long 1, short 1), so MARKET variance contribution should be near zero — the return is dominated by the sector spread (consumer staples vs banking) and idiosyncratic risk.
