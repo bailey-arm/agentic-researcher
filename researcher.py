@@ -210,6 +210,8 @@ def chat(prompt: str, history: list[dict], send_email: bool = False, email_to: s
     code_runs = []
     all_charts: list[str] = []
 
+    full_response = ""  # Accumulates text across tool-use loops
+
     while True:
         collected_text = ""
         collected_content = []
@@ -226,15 +228,15 @@ def chat(prompt: str, history: list[dict], send_email: bool = False, email_to: s
                 if event.type == "content_block_delta":
                     if event.delta.type == "text_delta":
                         collected_text += event.delta.text
-                        yield collected_text
+                        yield full_response + collected_text
 
             final_message = stream.get_final_message()
             stop_reason = final_message.stop_reason
             collected_content = final_message.content
 
         if stop_reason == "tool_use":
-            running_msg = collected_text + "\n\n*Running code...*"
-            yield running_msg
+            full_response += collected_text + "\n\n> ⏳ *Running code...*\n\n"
+            yield full_response
 
             messages.append({"role": "assistant", "content": collected_content})
 
@@ -257,8 +259,13 @@ def chat(prompt: str, history: list[dict], send_email: bool = False, email_to: s
                     })
 
             messages.append({"role": "user", "content": tool_results})
-            collected_text = ""
+            # Replace the spinner with a checkmark once code finishes
+            full_response = full_response.replace(
+                "> ⏳ *Running code...*", "> ✅ *Code executed*"
+            )
         else:
+            final_text = full_response + collected_text
+
             # Append chart images as base64 data URIs for inline display
             if all_charts:
                 chart_md = "\n\n"
@@ -268,30 +275,41 @@ def chat(prompt: str, history: list[dict], send_email: bool = False, email_to: s
                         with open(abs_path, "rb") as img_f:
                             b64 = base64.b64encode(img_f.read()).decode()
                         chart_md += f"![Chart](data:image/png;base64,{b64})\n"
-                collected_text += chart_md
-                yield collected_text
+                final_text += chart_md
 
-            save_output(prompt, collected_text, code_runs)
+            yield final_text
+            save_output(prompt, final_text, code_runs)
 
             # Send email if requested
             if send_email:
                 recipient = email_to.strip() or None
                 subject = f"Research: {prompt[:80]}"
-                # Strip image markdown for email body
-                email_body = re.sub(r"\n*!\[.*?\]\(.*?\)", "", collected_text).strip()
+                email_body = re.sub(r"\n*!\[.*?\]\(.*?\)", "", final_text).strip()
                 status = send_research_email(
                     subject=subject,
                     body_markdown=email_body,
                     chart_paths=all_charts,
                     recipient=recipient,
                 )
-                collected_text += f"\n\n---\n*{status}*"
-                yield collected_text
+                final_text += f"\n\n---\n*{status}*"
+                yield final_text
 
             return
 
 
-dark_theme = gr.themes.Default(primary_hue="blue", neutral_hue="gray")
+dark_theme = gr.themes.Soft(
+    primary_hue="indigo",
+    secondary_hue="blue",
+    neutral_hue="slate",
+    font=gr.themes.GoogleFont("Inter"),
+    font_mono=gr.themes.GoogleFont("JetBrains Mono"),
+)
+
+CUSTOM_CSS = """
+.gradio-container { max-width: 900px !important; margin: auto !important; }
+.message-wrap { font-size: 15px !important; }
+.bot .message-bubble-border { border: none !important; }
+"""
 
 
 def respond(message, history, send_email, email_to):
@@ -299,7 +317,7 @@ def respond(message, history, send_email, email_to):
         yield partial
 
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=dark_theme, css=CUSTOM_CSS, title="Agentic Researcher") as demo:
     gr.Markdown("# Agentic Researcher")
 
     with gr.Accordion("Email settings", open=False):
@@ -317,4 +335,4 @@ with gr.Blocks() as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(theme=dark_theme, css="body {background: #1a1a2e !important;}")
+    demo.launch()
