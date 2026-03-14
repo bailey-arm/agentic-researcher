@@ -114,10 +114,13 @@ TOOL_DEFINITION = {
     "description": (
         "Execute Python code. The utils/ package is available for import "
         "(e.g. `from utils.momentum import rank_by_momentum`, "
-        "`from utils.data_fetch import get_prices`). "
+        "`from utils.data_fetch import get_prices`, "
+        "`from utils.chinalpha import factor_decomposition, launch_factor_app`). "
         "Use print() to produce output. For charts, use matplotlib and call "
         "plt.savefig(__chart_path__) or just plt.show() — charts are saved "
-        "automatically. Only use this tool when computation would add value."
+        "automatically. For Chinese equity portfolio analysis, use utils.chinalpha "
+        "which provides factor decomposition and an interactive Dash app. "
+        "Only use this tool when computation would add value."
     ),
     "input_schema": {
         "type": "object",
